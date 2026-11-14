@@ -1,3 +1,8 @@
 .ipynb_checkpoints/ 
 
 api_key.txt
+api_key.txt
+owm_config.py
+__pycache__/
+scheduler_log.txt
+run_forecast.bat

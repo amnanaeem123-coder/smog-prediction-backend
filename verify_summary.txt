@@ -1,0 +1,20 @@
+Updated: 2026-11-14 18:24
+
+Rows in log file:     52
+Duplicates ignored:   8
+Unique predictions:   44
+Predictions checked:  36
+Waiting to be checked: 8
+
+Risk level correct:   28 of 36 (77.8%)
+Average error:        1.07 km
+Real danger hours (MODERATE or worse): 8
+  caught by us:       7
+  missed by us:       1
+False alarms:         1
+
+By city:
+  Lahore      7/9 correct, average error 2.08 km
+  Islamabad   9/9 correct, average error 0.00 km
+  Faisalabad  9/9 correct, average error 0.00 km
+  Multan      3/9 correct, average error 2.19 km

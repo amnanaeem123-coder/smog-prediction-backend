@@ -6,6 +6,8 @@ What it does (takes about 1 minute):
     2. Gets weather + pollution forecasts from OpenWeatherMap.
     3. Predicts visibility for 4 cities about 5 hours ahead.
     4. Saves latest_risk.json for the app.
+    5. Adds every prediction to prediction_log.csv (history for testing).
+    6. Runs verify.py to check old predictions against what really happened.
 
 How to run (Anaconda Prompt):
     cd "C:\\Users\\Admin\\fyp project"
@@ -17,6 +19,7 @@ API key:
     Never upload api_key.txt to GitHub.
 """
 
+import csv
 import json
 import os
 from datetime import datetime
@@ -38,6 +41,12 @@ BACKUP_PATH = r"C:\Users\Admin\OneDrive\Desktop\FYP_Dataset\latest_risk.json"
 
 FORECAST_HOURS = 5
 
+# History of every prediction (kept next to this script)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_PATH = os.path.join(SCRIPT_DIR, "prediction_log.csv")
+LOG_COLUMNS = ["run_time", "city", "target_time", "predicted_km", "predicted_risk",
+               "weather_source", "actual_km", "actual_risk", "level_match", "checked_at"]
+
 city_coords = {
     'Lahore':     [31.5204, 74.3587],
     'Islamabad':  [33.6844, 73.0479],
@@ -48,7 +57,7 @@ city_coords = {
 # ------------------------------------------------------------
 # LOAD API KEY AND MODEL
 # ------------------------------------------------------------
-KEY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api_key.txt")
+KEY_FILE = os.path.join(SCRIPT_DIR, "api_key.txt")
 if not os.path.exists(KEY_FILE):
     raise SystemExit(f"api_key.txt not found. Create it here: {KEY_FILE}")
 with open(KEY_FILE, "r", encoding="utf-8") as f:
@@ -176,13 +185,13 @@ def build_feature_row(city, lat, lon):
         weather, target_time = get_3hour_forecast_entry(lat, lon, wanted_time)
         source = "Free forecast (3-hour)"
     if weather is None:
-        return None, None
+        return None, None, None
 
     print(f"  Weather source: {source} | Forecast slot used: {target_time:%Y-%m-%d %H:%M}")
 
     pollution_entry = get_pollution_forecast_entry(lat, lon, target_time)
     if pollution_entry is None:
-        return None, None
+        return None, None, None
 
     temp, dew, winddir = weather['temp'], weather['dew'], weather['winddir']
 
@@ -219,7 +228,7 @@ def build_feature_row(city, lat, lon):
         'pm10': pollution_entry['components']['pm10'],
         'nh3': pollution_entry['components']['nh3'],
     }
-    return row, target_time
+    return row, target_time, source
 
 
 def classify_risk(v):
@@ -250,10 +259,12 @@ feature_order = ['temp', 'humidity', 'dew', 'windspeed', 'windgust', 'winddir',
 # MAKE PREDICTIONS
 # ------------------------------------------------------------
 results = []
+log_rows = []
+run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for city, (lat, lon) in city_coords.items():
     print(f"Fetching forecast for {city}...")
-    row, target_time = build_feature_row(city, lat, lon)
+    row, target_time, source = build_feature_row(city, lat, lon)
 
     if row is None:
         print(f"  SKIPPING {city}: forecast data unavailable.")
@@ -273,6 +284,15 @@ for city, (lat, lon) in city_coords.items():
     })
     print(f"  {city}: {predicted_visibility:.2f} km -> {risk}")
 
+    log_rows.append({
+        "run_time": run_time,
+        "city": city,
+        "target_time": target_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "predicted_km": round(predicted_visibility, 2),
+        "predicted_risk": risk,
+        "weather_source": source,
+    })
+
 
 # ------------------------------------------------------------
 # SAVE latest_risk.json (only if ALL cities worked)
@@ -285,3 +305,26 @@ else:
             json.dump(results, f, indent=2, ensure_ascii=False)
     print("\nlatest_risk.json updated!")
     print(json.dumps(results, indent=2, ensure_ascii=False))
+
+
+# ------------------------------------------------------------
+# ADD THIS RUN TO prediction_log.csv
+# ------------------------------------------------------------
+if log_rows:
+    new_file = not os.path.exists(LOG_PATH)
+    with open(LOG_PATH, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=LOG_COLUMNS)
+        if new_file:
+            writer.writeheader()
+        writer.writerows(log_rows)
+    print(f"\nAdded {len(log_rows)} predictions to prediction_log.csv")
+
+
+# ------------------------------------------------------------
+# CHECK OLD PREDICTIONS (verify.py in the same folder)
+# ------------------------------------------------------------
+try:
+    import verify
+    verify.run(with_chart=False)
+except Exception as e:
+    print(f"\nVerification skipped: {safe(e)}")
