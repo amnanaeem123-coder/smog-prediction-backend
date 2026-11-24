@@ -1,5 +1,5 @@
 # Runs the smog forecast every hour on GitHub (cloud), even when the laptop is off.
-# It saves prediction_log.csv, latest_risk.json and verify_summary.txt back into this repository.
+# It saves prediction_log.csv, latest_risk.json, verify_summary.txt and current_conditions.json back into this repository.
 name: Hourly smog forecast
 
 on:
@@ -36,11 +36,14 @@ jobs:
       - name: Run forecast and verify
         run: python run_forecast.py
 
+      - name: Get current weather and air quality
+        run: python current_conditions.py
+
       - name: Save results to the repository
         run: |
           git config user.name "forecast-bot"
           git config user.email "forecast-bot@users.noreply.github.com"
-          git add prediction_log.csv latest_risk.json verify_summary.txt
+          git add prediction_log.csv latest_risk.json verify_summary.txt current_conditions.json
           if git diff --cached --quiet; then
             echo "Nothing new to save."
           else
