@@ -1,0 +1,20 @@
+=== A. Old model, old style input (1 hour before) ===
+R2: 0.9113 | MAE: 1.545 km | RMSE: 2.782 km
+Risk level correct: 77.9%
+CRITICAL recall: 59.6%
+Danger hours caught (MODERATE or worse): 3261 of 3819 (85.4%)
+False alarms: 102
+
+=== B. Old model, live style input (5 hours before, max 10 km) ===
+R2: 0.8787 | MAE: 2.029 km | RMSE: 3.253 km
+Risk level correct: 72.0%
+CRITICAL recall: 37.6%
+Danger hours caught (MODERATE or worse): 3084 of 3819 (80.8%)
+False alarms: 165
+
+=== C. New model, live style input (5 hours before, max 10 km) ===
+R2: 0.9056 | MAE: 1.696 km | RMSE: 2.870 km
+Risk level correct: 74.6%
+CRITICAL recall: 49.4%
+Danger hours caught (MODERATE or worse): 3153 of 3819 (82.6%)
+False alarms: 121

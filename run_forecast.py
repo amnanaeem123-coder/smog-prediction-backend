@@ -2,7 +2,10 @@
 Quick forecast script for the Smog Risk Prediction System.
 
 What it does (takes about 1 minute):
-    1. Loads the ALREADY TRAINED model (no retraining).
+    1. Loads the ALREADY TRAINED models (no retraining).
+       The new model (lag5) makes the prediction shown in the app.
+       The old model also predicts the same hours in the background,
+       so verify.py can compare both on exactly the same hours.
     2. Gets weather + pollution forecasts from OpenWeatherMap.
     3. Predicts visibility for 4 cities about 5 hours ahead.
     4. Saves latest_risk.json for the app.
@@ -32,20 +35,32 @@ import requests
 # ------------------------------------------------------------
 # SETTINGS
 # ------------------------------------------------------------
-MODEL_PATH = r"C:\Users\Admin\OneDrive\Desktop\FYP_Dataset\xgb_model_with_pollution_final.pkl"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Main model (shown in the app). Trained with visibility 5 hours before.
+MODEL_PATH = os.path.join(SCRIPT_DIR, "model", "xgb_model_lag5.pkl")
+MODEL_NAME = "lag5"
+# Old model. Runs in the background only, for comparison.
+OLD_MODEL_PATH = os.path.join(SCRIPT_DIR, "model", "xgb_model_with_pollution_final.pkl")
 
 # Frontend app folder (the live server reads this file)
+# On GitHub (cloud) the files are saved inside the repository instead
+IN_CLOUD = os.environ.get("GITHUB_ACTIONS") == "true"
+
 SAVE_PATH = r"C:\Users\Admin\Desktop\smog-risk-prediction-system\assets\data\latest_risk.json"
 # Backup copy
 BACKUP_PATH = r"C:\Users\Admin\OneDrive\Desktop\FYP_Dataset\latest_risk.json"
+if IN_CLOUD:
+    SAVE_PATH = os.path.join(SCRIPT_DIR, "latest_risk.json")
+    BACKUP_PATH = None
 
 FORECAST_HOURS = 5
 
 # History of every prediction (kept next to this script)
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(SCRIPT_DIR, "prediction_log.csv")
 LOG_COLUMNS = ["run_time", "city", "target_time", "predicted_km", "predicted_risk",
-               "weather_source", "actual_km", "actual_risk", "level_match", "checked_at"]
+               "weather_source", "actual_km", "actual_risk", "level_match", "checked_at",
+               "model", "old_predicted_km", "old_predicted_risk"]
 
 city_coords = {
     'Lahore':     [31.5204, 74.3587],
@@ -58,12 +73,16 @@ city_coords = {
 # LOAD API KEY AND MODEL
 # ------------------------------------------------------------
 KEY_FILE = os.path.join(SCRIPT_DIR, "api_key.txt")
-if not os.path.exists(KEY_FILE):
-    raise SystemExit(f"api_key.txt not found. Create it here: {KEY_FILE}")
-with open(KEY_FILE, "r", encoding="utf-8") as f:
-    API_KEY = f.read().strip()
+# In the cloud the key comes from a hidden GitHub Secret, not from a file
+API_KEY = os.environ.get("OWM_API_KEY", "").strip()
+if not API_KEY:
+    if not os.path.exists(KEY_FILE):
+        raise SystemExit(f"api_key.txt not found. Create it here: {KEY_FILE}")
+    with open(KEY_FILE, "r", encoding="utf-8") as f:
+        API_KEY = f.read().strip()
 
 model = joblib.load(MODEL_PATH)
+old_model = joblib.load(OLD_MODEL_PATH) if os.path.exists(OLD_MODEL_PATH) else None
 
 
 def safe(err):
@@ -274,6 +293,7 @@ for city, (lat, lon) in city_coords.items():
     X_row = pd.DataFrame([row])[feature_order]
     predicted_visibility = float(model.predict(X_row)[0])
     risk = classify_risk(predicted_visibility)
+    old_visibility = float(old_model.predict(X_row)[0]) if old_model is not None else None
 
     results.append({
         'city': city,
@@ -291,6 +311,9 @@ for city, (lat, lon) in city_coords.items():
         "predicted_km": round(predicted_visibility, 2),
         "predicted_risk": risk,
         "weather_source": source,
+        "model": MODEL_NAME,
+        "old_predicted_km": round(old_visibility, 2) if old_visibility is not None else "",
+        "old_predicted_risk": classify_risk(old_visibility) if old_visibility is not None else "",
     })
 
 
@@ -301,6 +324,8 @@ if any(r['risk_level'] == 'UNAVAILABLE' for r in results):
     print("\nWARNING: some cities have no forecast. JSON NOT updated, old file kept.")
 else:
     for path in (SAVE_PATH, BACKUP_PATH):
+        if not path:
+            continue
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
     print("\nlatest_risk.json updated!")
@@ -310,7 +335,26 @@ else:
 # ------------------------------------------------------------
 # ADD THIS RUN TO prediction_log.csv
 # ------------------------------------------------------------
+def upgrade_log_columns():
+    """If the log file has the old set of columns, rewrite it with the new
+    columns. Old rows keep all their values. New columns are left empty."""
+    if not os.path.exists(LOG_PATH):
+        return
+    with open(LOG_PATH, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        header = reader.fieldnames or []
+        rows = list(reader)
+    if header == LOG_COLUMNS:
+        return
+    with open(LOG_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=LOG_COLUMNS)
+        writer.writeheader()
+        for r in rows:
+            writer.writerow({c: r.get(c, "") for c in LOG_COLUMNS})
+
+
 if log_rows:
+    upgrade_log_columns()
     new_file = not os.path.exists(LOG_PATH)
     with open(LOG_PATH, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=LOG_COLUMNS)

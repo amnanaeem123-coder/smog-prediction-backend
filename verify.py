@@ -20,6 +20,12 @@ Duplicates: if the forecast was run twice for the same city and the same
 forecast hour, only the latest of those predictions is counted in the
 summary and the chart. The log file itself keeps every row.
 
+Two models:
+    Until 23 Nov 2026 about 22:45 the old model made the predictions.
+    After that the new model (lag5) makes them. From 24 Nov the old model
+    also predicts the same hours in the background. The summary shows
+    the old model, the new model, and both side by side on the same hours.
+
 Note: OpenWeatherMap reports at most 10 km visibility. So before comparing,
 predictions above 10 km are also counted as 10 km. This is fair because
 10 km and above are all SAFE anyway.
@@ -38,7 +44,11 @@ SUMMARY_PATH = os.path.join(SCRIPT_DIR, "verify_summary.txt")
 KEY_FILE = os.path.join(SCRIPT_DIR, "api_key.txt")
 
 LOG_COLUMNS = ["run_time", "city", "target_time", "predicted_km", "predicted_risk",
-               "weather_source", "actual_km", "actual_risk", "level_match", "checked_at"]
+               "weather_source", "actual_km", "actual_risk", "level_match", "checked_at",
+               "model", "old_predicted_km", "old_predicted_risk"]
+
+# Predictions made from this time on came from the new model
+SWITCH_TIME = "2026-11-23 22:45:00"
 
 CITY_COORDS = {
     'Lahore':     [31.5204, 74.3587],
@@ -61,6 +71,9 @@ def classify_risk(v):
 
 
 def load_key():
+    key = os.environ.get("OWM_API_KEY", "").strip()
+    if key:
+        return key
     with open(KEY_FILE, "r", encoding="utf-8") as f:
         return f.read().strip()
 
@@ -146,48 +159,72 @@ def unique_rows(rows):
     return list(latest.values())
 
 
-def summarize(rows):
-    total_rows = len(rows)
-    rows = unique_rows(rows)
-    done = [r for r in rows if r.get("actual_km")]
-    lines = []
-    lines.append(f"Rows in log file:     {total_rows}")
-    lines.append(f"Duplicates ignored:   {total_rows - len(rows)}")
-    lines.append(f"Unique predictions:   {len(rows)}")
-    lines.append(f"Predictions checked:  {len(done)}")
-    lines.append(f"Waiting to be checked: {len(rows) - len(done)}")
+def model_of(row):
+    if row.get("model"):
+        return row["model"]
+    return "lag5" if row["run_time"] >= SWITCH_TIME else "old"
 
-    if not done:
-        lines.append("\nNothing to summarize yet. Predictions can be checked 1 hour after their time.")
-        return "\n".join(lines)
 
-    matches = sum(1 for r in done if r["level_match"] == "YES")
-    errors = [abs(min(float(r["predicted_km"]), OWM_MAX_KM) - float(r["actual_km"])) for r in done]
+def stats_lines(rows, key, title):
+    """Summary lines for one model. key is the column with its prediction."""
+    rows = [r for r in rows if r.get("actual_km") and r.get(key)]
+    lines = [title]
+    if not rows:
+        lines.append("  Nothing checked yet.")
+        return lines
+
+    def pred(r):
+        return min(float(r[key]), OWM_MAX_KM)
 
     def pred_risk(r):
-        return classify_risk(min(float(r["predicted_km"]), OWM_MAX_KM))
+        return classify_risk(pred(r))
 
-    real_danger = [r for r in done if r["actual_risk"] in DANGER]
-    caught = [r for r in real_danger if pred_risk(r) in DANGER]
-    missed = len(real_danger) - len(caught)
-    false_alarm = sum(1 for r in done if pred_risk(r) in DANGER and r["actual_risk"] not in DANGER)
+    matches = sum(1 for r in rows if pred_risk(r) == r["actual_risk"])
+    errors = [abs(pred(r) - float(r["actual_km"])) for r in rows]
+    real_danger = [r for r in rows if r["actual_risk"] in DANGER]
+    caught = sum(1 for r in real_danger if pred_risk(r) in DANGER)
+    false_alarm = sum(1 for r in rows if pred_risk(r) in DANGER and r["actual_risk"] not in DANGER)
 
-    lines.append("")
-    lines.append(f"Risk level correct:   {matches} of {len(done)} ({100 * matches / len(done):.1f}%)")
-    lines.append(f"Average error:        {sum(errors) / len(errors):.2f} km")
-    lines.append(f"Real danger hours (MODERATE or worse): {len(real_danger)}")
-    lines.append(f"  caught by us:       {len(caught)}")
-    lines.append(f"  missed by us:       {missed}")
-    lines.append(f"False alarms:         {false_alarm}")
-
-    lines.append("\nBy city:")
+    lines.append(f"  Checked predictions:  {len(rows)}")
+    lines.append(f"  Risk level correct:   {matches} of {len(rows)} ({100 * matches / len(rows):.1f}%)")
+    lines.append(f"  Average error:        {sum(errors) / len(errors):.2f} km")
+    lines.append(f"  Real danger hours (MODERATE or worse): {len(real_danger)}")
+    lines.append(f"    caught:             {caught}")
+    lines.append(f"    missed:             {len(real_danger) - caught}")
+    lines.append(f"  False alarms:         {false_alarm}")
+    lines.append("  By city:")
     for city in CITY_COORDS:
-        c = [r for r in done if r["city"] == city]
+        c = [r for r in rows if r["city"] == city]
         if c:
-            m = sum(1 for r in c if r["level_match"] == "YES")
-            e = sum(abs(min(float(r["predicted_km"]), OWM_MAX_KM) - float(r["actual_km"])) for r in c) / len(c)
-            lines.append(f"  {city:<11} {m}/{len(c)} correct, average error {e:.2f} km")
+            m = sum(1 for r in c if pred_risk(r) == r["actual_risk"])
+            e = sum(abs(pred(r) - float(r["actual_km"])) for r in c) / len(c)
+            lines.append(f"    {city:<11} {m}/{len(c)} correct, average error {e:.2f} km")
+    return lines
 
+
+def summarize(rows):
+    total_rows = len(rows)
+    unique = unique_rows(rows)
+    done = [r for r in unique if r.get("actual_km")]
+
+    old_rows = unique_rows([r for r in rows if model_of(r) == "old"])
+    new_rows = unique_rows([r for r in rows if model_of(r) == "lag5"])
+    paired = [r for r in new_rows if r.get("old_predicted_km")]
+
+    lines = []
+    lines.append(f"Rows in log file:     {total_rows}")
+    lines.append(f"Duplicates ignored:   {total_rows - len(unique)}")
+    lines.append(f"Unique predictions:   {len(unique)}")
+    lines.append(f"Predictions checked:  {len(done)}")
+    lines.append(f"Waiting to be checked: {len(unique) - len(done)}")
+    lines.append("")
+    lines += stats_lines(old_rows, "predicted_km", "OLD MODEL (until 23 Nov 22:45)")
+    lines.append("")
+    lines += stats_lines(new_rows, "predicted_km", "NEW MODEL lag5 (from 23 Nov 22:45)")
+    lines.append("")
+    lines.append("SIDE BY SIDE on exactly the same hours:")
+    lines += stats_lines(paired, "predicted_km", " New model:")
+    lines += stats_lines(paired, "old_predicted_km", " Old model:")
     return "\n".join(lines)
 
 
