@@ -1,10 +1,10 @@
 {
   "source": "OpenWeather Current Weather and Air Pollution (updated every hour)",
-  "updated_at": "2026-11-27T19:56:50.575430+05:00",
+  "updated_at": "2026-11-27T20:01:06.935902+05:00",
   "data": [
     {
       "city": "Lahore",
-      "datetime": "2026-11-27T19:56:49.591109+05:00",
+      "datetime": "2026-11-27T20:01:05.781829+05:00",
       "visibility_km": 4.0,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
@@ -21,7 +21,7 @@
     },
     {
       "city": "Islamabad",
-      "datetime": "2026-11-27T19:56:49.871160+05:00",
+      "datetime": "2026-11-27T20:01:06.169332+05:00",
       "visibility_km": 10.0,
       "risk_level": "SAFE",
       "recommendation": "Normal Operations",
@@ -38,7 +38,7 @@
     },
     {
       "city": "Faisalabad",
-      "datetime": "2026-11-27T19:56:50.226501+05:00",
+      "datetime": "2026-11-27T20:01:06.548744+05:00",
       "visibility_km": 10.0,
       "risk_level": "SAFE",
       "recommendation": "Normal Operations",
@@ -55,7 +55,7 @@
     },
     {
       "city": "Multan",
-      "datetime": "2026-11-27T19:56:50.573593+05:00",
+      "datetime": "2026-11-27T20:01:06.935413+05:00",
       "visibility_km": 3.5,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
