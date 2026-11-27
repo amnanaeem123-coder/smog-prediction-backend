@@ -283,10 +283,10 @@ run_time,city,target_time,predicted_km,predicted_risk,weather_source,actual_km,a
 2026-11-27 18:00:58,Islamabad,2026-11-27 23:00:00,7.25,LOW,One Call 4.0 (hourly),10.00,SAFE,NO,2026-11-28 00:00:59,lag5,9.41,LOW
 2026-11-27 18:00:58,Faisalabad,2026-11-27 23:00:00,17.55,SAFE,One Call 4.0 (hourly),10.00,SAFE,YES,2026-11-28 00:00:59,lag5,16.08,SAFE
 2026-11-27 18:00:58,Multan,2026-11-27 23:00:00,7.78,LOW,One Call 4.0 (hourly),10.00,SAFE,NO,2026-11-28 00:00:59,lag5,8.01,LOW
-2026-11-27 19:01:06,Lahore,2026-11-28 00:00:00,6.76,LOW,One Call 4.0 (hourly),,,,,lag5,6.14,LOW
-2026-11-27 19:01:06,Islamabad,2026-11-28 00:00:00,10.74,SAFE,One Call 4.0 (hourly),,,,,lag5,15.31,SAFE
-2026-11-27 19:01:06,Faisalabad,2026-11-28 00:00:00,24.17,SAFE,One Call 4.0 (hourly),,,,,lag5,23.86,SAFE
-2026-11-27 19:01:06,Multan,2026-11-28 00:00:00,8.57,LOW,One Call 4.0 (hourly),,,,,lag5,7.94,LOW
+2026-11-27 19:01:06,Lahore,2026-11-28 00:00:00,6.76,LOW,One Call 4.0 (hourly),10.00,SAFE,NO,2026-11-28 01:01:00,lag5,6.14,LOW
+2026-11-27 19:01:06,Islamabad,2026-11-28 00:00:00,10.74,SAFE,One Call 4.0 (hourly),10.00,SAFE,YES,2026-11-28 01:01:00,lag5,15.31,SAFE
+2026-11-27 19:01:06,Faisalabad,2026-11-28 00:00:00,24.17,SAFE,One Call 4.0 (hourly),10.00,SAFE,YES,2026-11-28 01:01:00,lag5,23.86,SAFE
+2026-11-27 19:01:06,Multan,2026-11-28 00:00:00,8.57,LOW,One Call 4.0 (hourly),10.00,SAFE,NO,2026-11-28 01:01:00,lag5,7.94,LOW
 2026-11-27 19:56:46,Lahore,2026-11-28 01:00:00,7.06,LOW,One Call 4.0 (hourly),,,,,lag5,6.92,LOW
 2026-11-27 19:56:46,Islamabad,2026-11-28 01:00:00,18.33,SAFE,One Call 4.0 (hourly),,,,,lag5,20.38,SAFE
 2026-11-27 19:56:46,Faisalabad,2026-11-28 01:00:00,24.13,SAFE,One Call 4.0 (hourly),,,,,lag5,23.56,SAFE
@@ -311,3 +311,7 @@ run_time,city,target_time,predicted_km,predicted_risk,weather_source,actual_km,a
 2026-11-28 00:00:56,Islamabad,2026-11-28 05:00:00,16.48,SAFE,One Call 4.0 (hourly),,,,,lag5,20.25,SAFE
 2026-11-28 00:00:56,Faisalabad,2026-11-28 05:00:00,23.8,SAFE,One Call 4.0 (hourly),,,,,lag5,23.48,SAFE
 2026-11-28 00:00:56,Multan,2026-11-28 05:00:00,14.83,SAFE,One Call 4.0 (hourly),,,,,lag5,9.92,LOW
+2026-11-28 01:00:57,Lahore,2026-11-28 06:00:00,7.9,LOW,One Call 4.0 (hourly),,,,,lag5,6.49,LOW
+2026-11-28 01:00:57,Islamabad,2026-11-28 06:00:00,18.95,SAFE,One Call 4.0 (hourly),,,,,lag5,21.6,SAFE
+2026-11-28 01:00:57,Faisalabad,2026-11-28 06:00:00,24.36,SAFE,One Call 4.0 (hourly),,,,,lag5,23.84,SAFE
+2026-11-28 01:00:57,Multan,2026-11-28 06:00:00,15.11,SAFE,One Call 4.0 (hourly),,,,,lag5,9.15,LOW
