@@ -1,29 +1,29 @@
 [
   {
     "city": "Lahore",
-    "datetime": "2026-11-27 15:00:00",
-    "visibility_km": 6.61,
+    "datetime": "2026-11-27 17:00:00",
+    "visibility_km": 6.46,
     "risk_level": "LOW",
     "recommendation": "Reduced Speed Advised — Monitor Conditions"
   },
   {
     "city": "Islamabad",
-    "datetime": "2026-11-27 15:00:00",
-    "visibility_km": 12.56,
+    "datetime": "2026-11-27 17:00:00",
+    "visibility_km": 13.53,
     "risk_level": "SAFE",
     "recommendation": "Normal Operations"
   },
   {
     "city": "Faisalabad",
-    "datetime": "2026-11-27 15:00:00",
-    "visibility_km": 23.89,
+    "datetime": "2026-11-27 17:00:00",
+    "visibility_km": 21.93,
     "risk_level": "SAFE",
     "recommendation": "Normal Operations"
   },
   {
     "city": "Multan",
-    "datetime": "2026-11-27 15:00:00",
-    "visibility_km": 9.81,
+    "datetime": "2026-11-27 17:00:00",
+    "visibility_km": 8.02,
     "risk_level": "LOW",
     "recommendation": "Reduced Speed Advised — Monitor Conditions"
   }

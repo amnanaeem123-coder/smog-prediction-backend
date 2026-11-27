@@ -1,10 +1,10 @@
-Updated: 2026-11-27 09:56
+Updated: 2026-11-27 11:44
 
-Rows in log file:     252
+Rows in log file:     256
 Duplicates ignored:   68
-Unique predictions:   184
+Unique predictions:   188
 Predictions checked:  180
-Waiting to be checked: 4
+Waiting to be checked: 8
 
 OLD MODEL (until 23 Nov 22:45)
   Checked predictions:  136
