@@ -1,10 +1,10 @@
 {
   "source": "Airport visibility (METAR) and OpenWeather air quality, updated every hour",
-  "updated_at": "2026-11-28T18:47:05.794706+05:00",
+  "updated_at": "2026-11-28T18:54:11.968263+05:00",
   "data": [
     {
       "city": "Lahore",
-      "datetime": "2026-11-28T18:47:05.009819+05:00",
+      "datetime": "2026-11-28T18:54:11.489130+05:00",
       "visibility_km": 4.01,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
@@ -21,7 +21,7 @@
     },
     {
       "city": "Islamabad",
-      "datetime": "2026-11-28T18:47:05.272337+05:00",
+      "datetime": "2026-11-28T18:54:11.644955+05:00",
       "visibility_km": 2.99,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
@@ -38,7 +38,7 @@
     },
     {
       "city": "Faisalabad",
-      "datetime": "2026-11-28T18:47:05.535030+05:00",
+      "datetime": "2026-11-28T18:54:11.807488+05:00",
       "visibility_km": 2.99,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
@@ -55,7 +55,7 @@
     },
     {
       "city": "Multan",
-      "datetime": "2026-11-28T18:47:05.794221+05:00",
+      "datetime": "2026-11-28T18:54:11.968094+05:00",
       "visibility_km": 2.0,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
