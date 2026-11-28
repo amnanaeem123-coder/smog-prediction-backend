@@ -26,6 +26,10 @@ Two models:
     also predicts the same hours in the background. The summary shows
     the old model, the new model, and both side by side on the same hours.
 
+Real visibility now comes from the AIRPORTS (METAR), see airport.py.
+OpenWeatherMap was used before, but it reported 10 km in about 91% of
+hours while the airports measured less. All old rows are checked again.
+
 Note: OpenWeatherMap reports at most 10 km visibility. So before comparing,
 predictions above 10 km are also counted as 10 km. This is fair because
 10 km and above are all SAFE anyway.
@@ -37,6 +41,8 @@ from datetime import datetime, timedelta
 
 import requests
 
+import airport
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(SCRIPT_DIR, "prediction_log.csv")
 CHART_PATH = os.path.join(SCRIPT_DIR, "verify_chart.png")
@@ -45,7 +51,8 @@ KEY_FILE = os.path.join(SCRIPT_DIR, "api_key.txt")
 
 LOG_COLUMNS = ["run_time", "city", "target_time", "predicted_km", "predicted_risk",
                "weather_source", "actual_km", "actual_risk", "level_match", "checked_at",
-               "model", "old_predicted_km", "old_predicted_risk"]
+               "model", "old_predicted_km", "old_predicted_risk",
+               "input_visibility_km", "input_source", "actual_source"]
 
 # Predictions made from this time on came from the new model
 SWITCH_TIME = "2026-11-23 22:45:00"
@@ -118,34 +125,43 @@ def write_log(rows):
 
 
 def fill_actuals(rows, api_key):
-    """Add the real visibility to every prediction whose time has passed."""
+    """Add the REAL visibility measured at the airport to every prediction
+    whose time has passed. Rows checked earlier with OpenWeatherMap
+    (actual_source not 'airport') are checked again with the airport."""
     now = datetime.now()
-    cache = {}  # (city, hour) -> km
-    filled = 0
-
+    todo = []
     for row in rows:
-        if row.get("actual_km"):
+        if row.get("actual_source") == "airport":
             continue
         target = datetime.strptime(row["target_time"], "%Y-%m-%d %H:%M:%S")
         if target > now - timedelta(hours=WAIT_HOURS):
             continue  # too early to check
+        todo.append((row, target))
+    if not todo:
+        return 0
 
-        hour = target.replace(minute=0, second=0, microsecond=0)
-        key = (row["city"], hour)
-        if key not in cache:
-            for h, km in fetch_hours(api_key, row["city"], hour).items():
-                cache[(row["city"], h)] = km
-        if key not in cache:
+    start = min(t for _, t in todo) - timedelta(days=1)
+    end = max(t for _, t in todo) + timedelta(days=1)
+    reports = {}
+    for city in airport.AIRPORTS:
+        try:
+            reports[city] = airport.download(city, start, end)
+        except Exception as e:
+            print(f"  Could not get airport data for {city}: {e}")
+            reports[city] = []
+
+    filled = 0
+    for row, target in todo:
+        actual = airport.nearest(reports.get(row["city"], []), target)
+        if actual is None:
             continue
-
-        actual = cache[key]
         row["actual_km"] = f"{actual:.2f}"
         row["actual_risk"] = classify_risk(actual)
+        row["actual_source"] = "airport"
         predicted_capped = min(float(row["predicted_km"]), OWM_MAX_KM)
         row["level_match"] = "YES" if classify_risk(predicted_capped) == row["actual_risk"] else "NO"
         row["checked_at"] = now.strftime("%Y-%m-%d %H:%M:%S")
         filled += 1
-
     return filled
 
 

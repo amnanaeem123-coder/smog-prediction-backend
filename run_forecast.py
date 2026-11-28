@@ -32,6 +32,8 @@ import numpy as np
 import pandas as pd
 import requests
 
+import airport
+
 # ------------------------------------------------------------
 # SETTINGS
 # ------------------------------------------------------------
@@ -60,7 +62,8 @@ FORECAST_HOURS = 5
 LOG_PATH = os.path.join(SCRIPT_DIR, "prediction_log.csv")
 LOG_COLUMNS = ["run_time", "city", "target_time", "predicted_km", "predicted_risk",
                "weather_source", "actual_km", "actual_risk", "level_match", "checked_at",
-               "model", "old_predicted_km", "old_predicted_risk"]
+               "model", "old_predicted_km", "old_predicted_risk",
+               "input_visibility_km", "input_source", "actual_source"]
 
 city_coords = {
     'Lahore':     [31.5204, 74.3587],
@@ -93,16 +96,26 @@ def safe(err):
 # ------------------------------------------------------------
 # HELPERS
 # ------------------------------------------------------------
-def get_current_visibility(lat, lon):
-    """Get current visibility, used as visibility_prev_reading."""
+def get_current_visibility(city, lat, lon):
+    """Visibility now, used as visibility_prev_reading.
+    First choice: the airport measurement (real instrument).
+    Backup: OpenWeatherMap (often stuck at 10 km)."""
+    try:
+        km = airport.latest(city)
+        if km is not None:
+            print(f"  Visibility now (airport {airport.AIRPORTS[city]}): {km} km")
+            return km, "airport"
+        print("  No recent airport report. Using OpenWeatherMap instead.")
+    except Exception as e:
+        print(f"  Airport data failed ({e}). Using OpenWeatherMap instead.")
     try:
         url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
         r = requests.get(url, timeout=10)
         r.raise_for_status()
-        return r.json()['visibility'] / 1000  # meters -> km
+        return r.json()['visibility'] / 1000, "openweather"  # meters -> km
     except Exception as e:
         print(f"  WARNING: current weather API failed ({safe(e)}). Using fallback value of 10 km (SAFE default).")
-        return 10.0
+        return 10.0, "default"
 
 
 def closest_entry_to(entries, target_time, time_key='dt'):
@@ -196,7 +209,7 @@ def build_feature_row(city, lat, lon):
     wanted_time = now + pd.Timedelta(hours=FORECAST_HOURS)
     print(f"  Now: {now:%H:%M} | Target: {wanted_time:%H:%M}")
 
-    prev_visibility = get_current_visibility(lat, lon)
+    prev_visibility, prev_source = get_current_visibility(city, lat, lon)
 
     weather, target_time = get_hourly_forecast_entry(lat, lon, wanted_time)
     source = "One Call 4.0 (hourly)"
@@ -235,6 +248,7 @@ def build_feature_row(city, lat, lon):
         'city_Lahore': 1 if city == 'Lahore' else 0,
         'city_Multan': 1 if city == 'Multan' else 0,
         'visibility_prev_reading': prev_visibility,
+        '_input_source': prev_source,   # not a model feature, only for the log
         'winddir_sin': np.sin(np.radians(winddir)),
         'winddir_cos': np.cos(np.radians(winddir)),
         'aqi': pollution_entry['main']['aqi'],
@@ -312,6 +326,8 @@ for city, (lat, lon) in city_coords.items():
         "predicted_risk": risk,
         "weather_source": source,
         "model": MODEL_NAME,
+        "input_visibility_km": row['visibility_prev_reading'],
+        "input_source": row.get('_input_source', ''),
         "old_predicted_km": round(old_visibility, 2) if old_visibility is not None else "",
         "old_predicted_risk": classify_risk(old_visibility) if old_visibility is not None else "",
     })

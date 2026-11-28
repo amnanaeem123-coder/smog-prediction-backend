@@ -17,6 +17,8 @@ from datetime import datetime
 
 import requests
 
+import airport
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_PATH = os.path.join(HERE, "current_conditions.json")
 KEY_FILE = os.path.join(HERE, "api_key.txt")
@@ -77,7 +79,13 @@ def main():
             pollution.raise_for_status()
             pollution = pollution.json()["list"][0]
 
-            visibility_km = round(weather["visibility"] / 1000, 2)
+            # Visibility from the airport (real measurement). OpenWeatherMap as backup.
+            try:
+                visibility_km = airport.latest(city)
+            except Exception:
+                visibility_km = None
+            if visibility_km is None:
+                visibility_km = round(weather["visibility"] / 1000, 2)
             risk = classify_risk(visibility_km)
             aqi = pollution["main"]["aqi"]
             comp = pollution["components"]
@@ -109,7 +117,7 @@ def main():
 
     with open(OUT_PATH, "w", encoding="utf-8") as f:
         json.dump({
-            "source": "OpenWeather Current Weather and Air Pollution (updated every hour)",
+            "source": "Airport visibility (METAR) and OpenWeather air quality, updated every hour",
             "updated_at": datetime.now().astimezone().isoformat(),
             "data": results,
         }, f, indent=2, ensure_ascii=False)
