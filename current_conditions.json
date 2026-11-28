@@ -1,11 +1,11 @@
 {
-  "source": "OpenWeather Current Weather and Air Pollution (updated every hour)",
-  "updated_at": "2026-11-28T18:01:01.623205+05:00",
+  "source": "Airport visibility (METAR) and OpenWeather air quality, updated every hour",
+  "updated_at": "2026-11-28T18:17:35.241766+05:00",
   "data": [
     {
       "city": "Lahore",
-      "datetime": "2026-11-28T18:01:00.931857+05:00",
-      "visibility_km": 3.5,
+      "datetime": "2026-11-28T18:17:34.016816+05:00",
+      "visibility_km": 4.01,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
       "aqi": 5,
@@ -16,46 +16,46 @@
       "o3": 101.07,
       "so2": 11.16,
       "co": 748.66,
-      "temperature_c": 20.99,
+      "temperature_c": 19.99,
       "humidity": 56
     },
     {
       "city": "Islamabad",
-      "datetime": "2026-11-28T18:01:01.160041+05:00",
+      "datetime": "2026-11-28T18:17:34.405055+05:00",
       "visibility_km": 10.0,
       "risk_level": "SAFE",
       "recommendation": "Normal Operations",
       "aqi": 5,
       "aqi_label": "Very Poor",
-      "pm2_5": 305,
-      "pm10": 426.04,
+      "pm2_5": 301.18,
+      "pm10": 416.12,
       "no2": 19.57,
-      "o3": 117.91,
-      "so2": 12.39,
-      "co": 1378.44,
-      "temperature_c": 18.79,
-      "humidity": 68
+      "o3": 117.65,
+      "so2": 13.54,
+      "co": 1354.82,
+      "temperature_c": 18.23,
+      "humidity": 70
     },
     {
       "city": "Faisalabad",
-      "datetime": "2026-11-28T18:01:01.393799+05:00",
+      "datetime": "2026-11-28T18:17:34.807602+05:00",
       "visibility_km": 10.0,
       "risk_level": "SAFE",
       "recommendation": "Normal Operations",
       "aqi": 5,
       "aqi_label": "Very Poor",
-      "pm2_5": 132.13,
-      "pm10": 252.16,
-      "no2": 12.34,
-      "o3": 83.11,
-      "so2": 6.67,
-      "co": 766.72,
+      "pm2_5": 134.06,
+      "pm10": 253.56,
+      "no2": 11.66,
+      "o3": 86.43,
+      "so2": 6.14,
+      "co": 771.36,
       "temperature_c": 21.67,
       "humidity": 22
     },
     {
       "city": "Multan",
-      "datetime": "2026-11-28T18:01:01.622909+05:00",
+      "datetime": "2026-11-28T18:17:35.241435+05:00",
       "visibility_km": 2.0,
       "risk_level": "MODERATE",
       "recommendation": "Speed Limit 60 km/h - Caution Required",
@@ -67,8 +67,8 @@
       "o3": 106.47,
       "so2": 11.72,
       "co": 941.58,
-      "temperature_c": 24,
-      "humidity": 46
+      "temperature_c": 22,
+      "humidity": 53
     }
   ]
 }
