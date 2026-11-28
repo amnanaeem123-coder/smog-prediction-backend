@@ -363,3 +363,7 @@ run_time,city,target_time,predicted_km,predicted_risk,weather_source,actual_km,a
 2026-11-28 12:00:56,Islamabad,2026-11-28 17:00:00,13.66,SAFE,One Call 4.0 (hourly),,,,,lag5,16.53,SAFE
 2026-11-28 12:00:56,Faisalabad,2026-11-28 17:00:00,8.88,LOW,One Call 4.0 (hourly),,,,,lag5,17.03,SAFE
 2026-11-28 12:00:56,Multan,2026-11-28 17:00:00,10.53,SAFE,One Call 4.0 (hourly),,,,,lag5,8.84,LOW
+2026-11-28 12:35:35,Lahore,2026-11-28 18:00:00,5.96,LOW,One Call 4.0 (hourly),,,,,lag5,5.97,LOW
+2026-11-28 12:35:35,Islamabad,2026-11-28 18:00:00,14.02,SAFE,One Call 4.0 (hourly),,,,,lag5,17.73,SAFE
+2026-11-28 12:35:35,Faisalabad,2026-11-28 18:00:00,22.9,SAFE,One Call 4.0 (hourly),,,,,lag5,24.33,SAFE
+2026-11-28 12:35:35,Multan,2026-11-28 18:00:00,11.49,SAFE,One Call 4.0 (hourly),,,,,lag5,12.34,SAFE
