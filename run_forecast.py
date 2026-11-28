@@ -23,6 +23,7 @@ API key:
 """
 
 import csv
+import math
 import json
 import os
 from datetime import datetime
@@ -57,6 +58,9 @@ if IN_CLOUD:
     BACKUP_PATH = None
 
 FORECAST_HOURS = 5
+
+# Correct the forecast temperature and dew point using the airport measurement now
+CORRECT_WITH_AIRPORT = True
 
 # History of every prediction (kept next to this script)
 LOG_PATH = os.path.join(SCRIPT_DIR, "prediction_log.csv")
@@ -176,6 +180,7 @@ def get_hourly_forecast_entry(lat, lon, target_time):
     entry, entry_time = closest_entry_to(data.get('data', []), target_time)
     if entry is None:
         return None, None
+    now_entry, _ = closest_entry_to(data.get('data', []), datetime.now())
 
     weather = {
         'temp': entry['temp'],
@@ -189,7 +194,48 @@ def get_hourly_forecast_entry(lat, lon, target_time):
         'precip': entry.get('rain', {}).get('1h', 0),
         'snow': entry.get('snow', {}).get('1h', 0),
     }
+    if now_entry is not None:
+        # What the forecast says for NOW (used to correct it with the airport)
+        weather['_now_temp'] = now_entry['temp']
+        weather['_now_dew'] = now_entry['dew_point']
     return weather, entry_time
+
+
+def relative_humidity(temp_c, dew_c):
+    """Humidity (%) from temperature and dew point (Magnus formula)."""
+    a, b = 17.625, 243.04
+    return 100 * math.exp(a * dew_c / (b + dew_c)) / math.exp(a * temp_c / (b + temp_c))
+
+
+def correct_with_airport(city, weather):
+    """Bias correction: compare the airport measurement NOW with what the
+    forecast says for NOW, and shift the forecast for later by the same
+    amount. Returns True if a correction was made."""
+    if not CORRECT_WITH_AIRPORT or '_now_temp' not in weather:
+        return False
+    try:
+        obs = airport.latest_met(city)
+    except Exception as e:
+        print(f"  Forecast not corrected (airport data failed: {e})")
+        return False
+    if obs is None:
+        print("  Forecast not corrected (no recent airport temperature)")
+        return False
+
+    _, air_temp, air_dew = obs
+    temp_error = air_temp - weather['_now_temp']
+    dew_error = air_dew - weather['_now_dew']
+    print(f"  Airport now:  temp {air_temp:.1f} C, dew point {air_dew:.1f} C")
+    print(f"  Forecast now: temp {weather['_now_temp']:.1f} C, dew point {weather['_now_dew']:.1f} C")
+
+    temp = weather['temp'] + temp_error
+    dew = min(weather['dew'] + dew_error, temp)   # dew point can not be above temperature
+    humidity = relative_humidity(temp, dew)
+    print(f"  Forecast for target: temp {weather['temp']:.1f} -> {temp:.1f} C, "
+          f"dew point {weather['dew']:.1f} -> {dew:.1f} C, "
+          f"humidity {weather['humidity']:.0f} -> {humidity:.0f}%")
+    weather['temp'], weather['dew'], weather['humidity'] = round(temp, 2), round(dew, 2), round(humidity, 1)
+    return True
 
 
 def get_3hour_forecast_entry(lat, lon, target_time):
@@ -252,6 +298,8 @@ def build_feature_row(city, lat, lon):
         return None, None, None
 
     print(f"  Weather source: {source} | Forecast slot used: {target_time:%Y-%m-%d %H:%M}")
+    if correct_with_airport(city, weather):
+        prev_source += "+corrected"
 
     pollution_entry = get_pollution_forecast_entry(lat, lon, target_time)
     if pollution_entry is None:
