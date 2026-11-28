@@ -375,10 +375,10 @@ run_time,city,target_time,predicted_km,predicted_risk,weather_source,actual_km,a
 2026-11-28 14:00:55,Islamabad,2026-11-28 19:00:00,16.69,SAFE,One Call 4.0 (hourly),2.99,MODERATE,NO,2026-11-28 20:00:53,lag5,17.02,SAFE,,,airport
 2026-11-28 14:00:55,Faisalabad,2026-11-28 19:00:00,23.39,SAFE,One Call 4.0 (hourly),2.00,MODERATE,NO,2026-11-28 20:00:53,lag5,24.24,SAFE,,,airport
 2026-11-28 14:00:55,Multan,2026-11-28 19:00:00,11.72,SAFE,One Call 4.0 (hourly),2.00,MODERATE,NO,2026-11-28 20:00:53,lag5,10.05,SAFE,,,airport
-2026-11-28 15:00:52,Lahore,2026-11-28 20:00:00,4.03,MODERATE,One Call 4.0 (hourly),,,,,lag5,2.32,MODERATE,,,
-2026-11-28 15:00:52,Islamabad,2026-11-28 20:00:00,10.33,SAFE,One Call 4.0 (hourly),,,,,lag5,11.42,SAFE,,,
-2026-11-28 15:00:52,Faisalabad,2026-11-28 20:00:00,23.37,SAFE,One Call 4.0 (hourly),,,,,lag5,24.41,SAFE,,,
-2026-11-28 15:00:52,Multan,2026-11-28 20:00:00,8.46,LOW,One Call 4.0 (hourly),,,,,lag5,6.96,LOW,,,
+2026-11-28 15:00:52,Lahore,2026-11-28 20:00:00,4.03,MODERATE,One Call 4.0 (hourly),4.01,MODERATE,YES,2026-11-28 21:00:59,lag5,2.32,MODERATE,,,airport
+2026-11-28 15:00:52,Islamabad,2026-11-28 20:00:00,10.33,SAFE,One Call 4.0 (hourly),3.49,MODERATE,NO,2026-11-28 21:00:59,lag5,11.42,SAFE,,,airport
+2026-11-28 15:00:52,Faisalabad,2026-11-28 20:00:00,23.37,SAFE,One Call 4.0 (hourly),2.00,MODERATE,NO,2026-11-28 21:00:59,lag5,24.41,SAFE,,,airport
+2026-11-28 15:00:52,Multan,2026-11-28 20:00:00,8.46,LOW,One Call 4.0 (hourly),2.00,MODERATE,NO,2026-11-28 21:00:59,lag5,6.96,LOW,,,airport
 2026-11-28 16:00:49,Lahore,2026-11-28 21:00:00,9.34,LOW,One Call 4.0 (hourly),,,,,lag5,11.54,SAFE,,,
 2026-11-28 16:00:49,Islamabad,2026-11-28 21:00:00,16.02,SAFE,One Call 4.0 (hourly),,,,,lag5,17.68,SAFE,,,
 2026-11-28 16:00:49,Faisalabad,2026-11-28 21:00:00,25.51,SAFE,One Call 4.0 (hourly),,,,,lag5,26.31,SAFE,,,
@@ -423,3 +423,7 @@ run_time,city,target_time,predicted_km,predicted_risk,weather_source,actual_km,a
 2026-11-28 20:00:50,Islamabad,2026-11-29 01:00:00,18.56,SAFE,One Call 4.0 (hourly),,,,,lag5,18.77,SAFE,2.99,airport+corrected,
 2026-11-28 20:00:50,Faisalabad,2026-11-29 01:00:00,24.72,SAFE,One Call 4.0 (hourly),,,,,lag5,24.68,SAFE,2.0,airport+corrected,
 2026-11-28 20:00:50,Multan,2026-11-29 01:00:00,6.04,LOW,One Call 4.0 (hourly),,,,,lag5,6.35,LOW,2.0,airport+corrected,
+2026-11-28 21:00:57,Lahore,2026-11-29 02:00:00,2.92,MODERATE,One Call 4.0 (hourly),,,,,lag5,3.65,MODERATE,3.49,airport+corrected,
+2026-11-28 21:00:57,Islamabad,2026-11-29 02:00:00,21.22,SAFE,One Call 4.0 (hourly),,,,,lag5,19.36,SAFE,3.49,airport+corrected,
+2026-11-28 21:00:57,Faisalabad,2026-11-29 02:00:00,22.8,SAFE,One Call 4.0 (hourly),,,,,lag5,23.8,SAFE,2.0,airport+corrected,
+2026-11-28 21:00:57,Multan,2026-11-29 02:00:00,9.06,LOW,One Call 4.0 (hourly),,,,,lag5,7.02,LOW,2.0,airport+corrected,
