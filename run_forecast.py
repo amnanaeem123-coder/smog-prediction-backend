@@ -87,6 +87,38 @@ if not API_KEY:
 model = joblib.load(MODEL_PATH)
 old_model = joblib.load(OLD_MODEL_PATH) if os.path.exists(OLD_MODEL_PATH) else None
 
+# Training data, only used to print a comparison of the live inputs (diagnostic)
+TRAIN_PATH = os.path.join(SCRIPT_DIR, "data", "master_dataset_with_pollution.csv")
+try:
+    TRAIN = pd.read_csv(TRAIN_PATH)
+except Exception:
+    TRAIN = None
+
+CHECK_FEATURES = ['temp', 'humidity', 'dew', 'dew_point_depression', 'windspeed', 'windgust',
+                  'sealevelpressure', 'cloudcover', 'precip', 'aqi', 'pm2_5', 'pm10', 'co',
+                  'no2', 'o3', 'visibility_prev_reading']
+
+
+def compare_with_training(city, row):
+    """Print each live input next to its normal range in the training data
+    (same city, Nov to Feb, within 2 hours of the same time of day)."""
+    if TRAIN is None:
+        return
+    t = TRAIN[(TRAIN[f'city_{city}'] == 1) & (TRAIN['month'].isin([11, 12, 1, 2]))]
+    h = row['hour']
+    t = t[((t['hour'] - h) % 24 <= 2) | ((h - t['hour']) % 24 <= 2)]
+    if t.empty:
+        return
+    print(f"  Inputs compared with training ({len(t)} similar hours):")
+    print(f"    {'input':<24}{'live':>9}{'normal low':>12}{'typical':>10}{'normal high':>13}")
+    for f in CHECK_FEATURES:
+        if f not in t.columns:
+            continue
+        lo, mid, hi = t[f].quantile([0.05, 0.5, 0.95])
+        live = row[f]
+        flag = "  <-- OUTSIDE NORMAL" if (live < lo or live > hi) else ""
+        print(f"    {f:<24}{live:>9.2f}{lo:>12.2f}{mid:>10.2f}{hi:>13.2f}{flag}")
+
 
 def safe(err):
     """Hide the API key in error messages so it never shows on screen."""
@@ -305,6 +337,10 @@ for city, (lat, lon) in city_coords.items():
         continue
 
     X_row = pd.DataFrame([row])[feature_order]
+    try:
+        compare_with_training(city, row)
+    except Exception as e:
+        print(f"  (comparison skipped: {e})")
     predicted_visibility = float(model.predict(X_row)[0])
     risk = classify_risk(predicted_visibility)
     old_visibility = float(old_model.predict(X_row)[0]) if old_model is not None else None
