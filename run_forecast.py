@@ -61,6 +61,9 @@ FORECAST_HOURS = 5
 
 # Correct the forecast temperature and dew point using the airport measurement now
 CORRECT_WITH_AIRPORT = True
+# The dew point (moisture in the air) changes slowly. The forecast may change it
+# by at most this many degrees between now and the target hour.
+MAX_DEW_CHANGE = 3.0
 
 # History of every prediction (kept next to this script)
 LOG_PATH = os.path.join(SCRIPT_DIR, "prediction_log.csv")
@@ -198,6 +201,15 @@ def get_hourly_forecast_entry(lat, lon, target_time):
         # What the forecast says for NOW (used to correct it with the airport)
         weather['_now_temp'] = now_entry['temp']
         weather['_now_dew'] = now_entry['dew_point']
+
+    # Diagnostic: hour by hour dew point between now and the target
+    steps = []
+    for e in data.get('data', []):
+        t = datetime.fromtimestamp(e['dt'])
+        if datetime.now() - pd.Timedelta(hours=1) <= t <= entry_time:
+            steps.append(f"{t:%H}h {e['dew_point']:.1f}")
+    if steps:
+        print("  Forecast dew point by hour: " + " | ".join(steps))
     return weather, entry_time
 
 
@@ -229,7 +241,16 @@ def correct_with_airport(city, weather):
     print(f"  Forecast now: temp {weather['_now_temp']:.1f} C, dew point {weather['_now_dew']:.1f} C")
 
     temp = weather['temp'] + temp_error
-    dew = min(weather['dew'] + dew_error, temp)   # dew point can not be above temperature
+
+    # Dew point: start from the airport measurement now and add the change the
+    # forecast expects, limited to MAX_DEW_CHANGE degrees (moisture changes slowly)
+    forecast_change = weather['dew'] - weather['_now_dew']
+    change = max(-MAX_DEW_CHANGE, min(MAX_DEW_CHANGE, forecast_change))
+    if change != forecast_change:
+        print(f"  Forecast dew point change {forecast_change:+.1f} C is not realistic. "
+              f"Limited to {change:+.1f} C.")
+    dew = min(air_dew + change, temp)   # dew point can not be above temperature
+    _ = dew_error  # (kept for the printout above)
     humidity = relative_humidity(temp, dew)
     print(f"  Forecast for target: temp {weather['temp']:.1f} -> {temp:.1f} C, "
           f"dew point {weather['dew']:.1f} -> {dew:.1f} C, "
